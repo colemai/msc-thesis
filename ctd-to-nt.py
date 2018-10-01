@@ -139,7 +139,7 @@ convert_df_nt(df_cg, 'output_cg.nt', subj_url, subj_col, obj_url, obj_col, pred_
 
 
 # Read in CTD sample, skipping the intro rows
-df_cd = pd.read_csv('csvs/CTD_chemicals_diseases.csv', skiprows=27, nrows = 100)
+df_cd = pd.read_csv('csvs/CTD_chemicals_diseases.csv', skiprows=27)
 df_cd = df_cd.drop(0)
 
 
@@ -186,26 +186,13 @@ pred_col = 'Predicate'
 convert_df_nt(df_cd, 'output_cd.nt', subj_url, subj_col, obj_url, obj_col, pred_col, obj_url_2)
 
 
-# In[37]:
-
-
-df_cd
-
-
 # ## Gene Disease
 
 # In[19]:
 
 
 # Read in CTD sample, skipping the intro rows
-df_gd = pd.read_csv('csvs/CTD_genes_diseases.csv', skiprows=27, nrows = 100)
-df_gd = df_gd.drop(0)
-
-
-# In[20]:
-
-
-df_gd[-10:]
+df_gd = pd.read_csv('csvs/CTD_genes_diseases.csv', skiprows=27)
 
 
 # In[21]:
@@ -229,18 +216,6 @@ def gd_predicate(r):
 df_gd['Predicate'] = df_gd.apply(gd_predicate, axis=1)
 
 
-# In[22]:
-
-
-df_gd.Predicate.unique()
-
-
-# In[23]:
-
-
-df_gd.head()
-
-
 # In[24]:
 
 
@@ -259,14 +234,8 @@ convert_df_nt(df_gd, 'output_gd.nt', subj_url, subj_col, obj_url, obj_col, pred_
 
 
 # Read in CTD sample, skipping the intro rows
-df_gp = pd.read_csv('csvs/CTD_genes_pathways.csv', skiprows=27, nrows = 100)
+df_gp = pd.read_csv('csvs/CTD_genes_pathways.csv', skiprows=27)
 df_gp = df_gp.drop(0)
-
-
-# In[26]:
-
-
-df_gp.head()
 
 
 # In[27]:
@@ -301,14 +270,8 @@ convert_df_nt(df_gp, 'output_gp.nt', subj_url, subj_col, obj_url, obj_col, pred_
 
 
 # Read in CTD sample, skipping the intro rows
-df_dp = pd.read_csv('csvs/CTD_diseases_pathways.csv', skiprows=27, nrows = 100)
+df_dp = pd.read_csv('csvs/CTD_diseases_pathways.csv', skiprows=27)
 df_dp = df_dp.drop(0)
-
-
-# In[30]:
-
-
-df_dp.head()
 
 
 # In[31]:
