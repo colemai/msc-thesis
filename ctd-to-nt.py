@@ -88,105 +88,105 @@ def convert_df_nt (df, output_file, subj_url, subj_col, obj_url, obj_col, pred_c
 # In[38]:
 
 
-# Read in CTD sample, skipping the intro rows8888
-df_cg = pd.read_csv('csvs/CTD_chem_gene_ixns.csv', skiprows=27)
-df_cg = df_cg.drop(0)
-df_cg = df_cg.rename(columns={'# ChemicalName': 'ChemicalName'}) # rename of a column
-print('Progress: 1')
+# # Read in CTD sample, skipping the intro rows8888
+# df_cg = pd.read_csv('csvs/CTD_chem_gene_ixns.csv', skiprows=27)
+# df_cg = df_cg.drop(0)
+# df_cg = df_cg.rename(columns={'# ChemicalName': 'ChemicalName'}) # rename of a column
+# print('Progress: 1')
 
-# In[ ]:
-
-
-# Split the interactionActions into separate predicates RUN THIS ONLY ONCE
-s = df_cg['InteractionActions'].str.split('|').apply(pd.Series, 1).stack()
-s.index = s.index.droplevel(-1)
-s.name = 'InteractionActions'
-df_cg = df_cg.join(s.apply(lambda x: pd.Series(x.split('|'))))
-print('Progress: 2')
-
-# In[ ]:
+# # In[ ]:
 
 
-# Make the new column prettier
-df_cg = df_cg.rename(columns={0: 'Predicate'})
-df_cg['Predicate'] = df_cg.Predicate.str.replace('^', '_')
-df_cg['Predicate'] = df_cg.Predicate.str.replace(' ', '_')
-print('Progress: 3')
+# # Split the interactionActions into separate predicates RUN THIS ONLY ONCE
+# s = df_cg['InteractionActions'].str.split('|').apply(pd.Series, 1).stack()
+# s.index = s.index.droplevel(-1)
+# s.name = 'InteractionActions'
+# df_cg = df_cg.join(s.apply(lambda x: pd.Series(x.split('|'))))
+# print('Progress: 2')
 
-# In[ ]:
-
-
-# Need to change float to int for the url to work
-df_cg['GeneID'] = df_cg.GeneID.astype(int)
+# # In[ ]:
 
 
-# In[ ]:
+# # Make the new column prettier
+# df_cg = df_cg.rename(columns={0: 'Predicate'})
+# df_cg['Predicate'] = df_cg.Predicate.str.replace('^', '_')
+# df_cg['Predicate'] = df_cg.Predicate.str.replace(' ', '_')
+# print('Progress: 3')
+
+# # In[ ]:
 
 
-subj_url = 'http://identifiers.org/ctd.chemical/' 
-subj_col = 'ChemicalID'
-obj_url = 'http://identifiers.org/ctd.gene/' 
-obj_col = 'GeneID'
-pred_col = 'Predicate'
-
-convert_df_nt(df_cg, '/scratch/dragon/amd/colemai/output_cg.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
-
-print('Progress: 4')
-# ## Chem-Disease
-
-# In[14]:
+# # Need to change float to int for the url to work
+# df_cg['GeneID'] = df_cg.GeneID.astype(int)
 
 
-# Read in CTD sample, skipping the intro rows
-df_cd = pd.read_csv('csvs/CTD_chemicals_diseases.csv', skiprows=27)
-df_cd = df_cd.drop(0)
+# # In[ ]:
 
 
-# In[15]:
+# subj_url = 'http://identifiers.org/ctd.chemical/' 
+# subj_col = 'ChemicalID'
+# obj_url = 'http://identifiers.org/ctd.gene/' 
+# obj_col = 'GeneID'
+# pred_col = 'Predicate'
+
+# convert_df_nt(df_cg, 'output_cg.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
+
+# print('Progress: 4')
+# # ## Chem-Disease
+
+# # In[14]:
 
 
-'OMIM' in (df_cd.loc[65,'DiseaseID'])
+# # Read in CTD sample, skipping the intro rows
+# df_cd = pd.read_csv('csvs/CTD_chemicals_diseases.csv', skiprows=27)
+# df_cd = df_cd.drop(0)
 
 
-# In[16]:
+# # In[15]:
 
 
-# Process DiseaseID so as to be usable in url
-df_cd['DiseaseID'] = df_cd['DiseaseID'].str.replace('MESH:', '')
+# 'OMIM' in (df_cd.loc[65,'DiseaseID'])
 
 
-# In[17]:
-
-print('Progress: 5')
-# Create Predicate Column
-def cd_predicate(r):
-    """
-    Create predicate from directevidence if available
-    """
-    if r['DirectEvidence'] == "nan":
-        return 'associated_by_inference_via_' + str(r.InferenceGeneSymbol)
-    else:
-        return 'associated_directly_with'
-
-print('starting pred')    
-df_cd['DirectEvidence'] = df_cd.DirectEvidence.astype(str) 
-df_cd['Predicate'] = df_cd.apply(cd_predicate, axis=1)
-print('ending pred')
-
-# In[18]:
+# # In[16]:
 
 
-subj_url = 'http://identifiers.org/ctd.chemical/' 
-subj_col = 'ChemicalID'
-obj_url = 'http://identifiers.org/mesh/'
-obj_url_2 = 'http://identifiers.org/omim/' # to use when CTD gives an omim disease id
-obj_col = 'DiseaseID'
-pred_col = 'Predicate'
-
-convert_df_nt(df_cd, '/scratch/dragon/amd/colemai/output_cd.nt', subj_url, subj_col, obj_url, obj_col, pred_col, obj_url_2)
+# # Process DiseaseID so as to be usable in url
+# df_cd['DiseaseID'] = df_cd['DiseaseID'].str.replace('MESH:', '')
 
 
-# ## Gene Disease
+# # In[17]:
+
+# print('Progress: 5')
+# # Create Predicate Column
+# def cd_predicate(r):
+#     """
+#     Create predicate from directevidence if available
+#     """
+#     if r['DirectEvidence'] == "nan":
+#         return 'associated_by_inference_via_' + str(r.InferenceGeneSymbol)
+#     else:
+#         return 'associated_directly_with'
+
+# print('starting pred')    
+# df_cd['DirectEvidence'] = df_cd.DirectEvidence.astype(str) 
+# df_cd['Predicate'] = df_cd.apply(cd_predicate, axis=1)
+# print('ending pred')
+
+# # In[18]:
+
+
+# subj_url = 'http://identifiers.org/ctd.chemical/' 
+# subj_col = 'ChemicalID'
+# obj_url = 'http://identifiers.org/mesh/'
+# obj_url_2 = 'http://identifiers.org/omim/' # to use when CTD gives an omim disease id
+# obj_col = 'DiseaseID'
+# pred_col = 'Predicate'
+
+# convert_df_nt(df_cd, 'output_cd.nt', subj_url, subj_col, obj_url, obj_col, pred_col, obj_url_2)
+
+
+# # ## Gene Disease
 
 # In[19]:
 
@@ -223,11 +223,12 @@ print('Progress: 7')
 
 subj_url = 'http://identifiers.org/ctd.gene/' 
 subj_col = 'GeneID'
-obj_url = 'http://identifiers.org/mesh/' 
+obj_url = 'http://identifiers.org/mesh/'
+obj_url_2 = 'http://identifiers.org/omim/' 
 obj_col = 'DiseaseID'
 pred_col = 'Predicate'
 
-convert_df_nt(df_gd, '/scratch/dragon/amd/colemai/output_gd.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
+convert_df_nt(df_gd, 'output_gd.nt', subj_url, subj_col, obj_url, obj_col, pred_col, obj_url_2)
 
 
 # ## Gene Pathway
@@ -264,7 +265,7 @@ obj_url = 'http://identifiers.org/reactome/'
 obj_col = 'PathwayID'
 pred_col = 'Predicate'
 
-convert_df_nt(df_gp, '/scratch/dragon/amd/colemai/output_gp.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
+convert_df_nt(df_gp, 'output_gp.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
 
 
 # ## Disease Pathway
@@ -301,7 +302,7 @@ obj_url = 'http://identifiers.org/reactome/'
 obj_col = 'PathwayID'
 pred_col = 'Predicate'
 
-convert_df_nt(df_dp, '/scratch/dragon/amd/colemai/output_dp.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
+convert_df_nt(df_dp, 'output_dp.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
 
 
 # ## Phenotype Chemical
@@ -338,7 +339,7 @@ convert_df_nt(df_dp, '/scratch/dragon/amd/colemai/output_dp.nt', subj_url, subj_
 # obj_col = 'phenotypeid'
 # pred_col = 'Predicate'
 
-# convert_df_nt(df_pc, '/scratch/dragon/amd/colemai/output_pc.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
+# convert_df_nt(df_pc, 'output_pc.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
 
 
 # ## Merge NT files
@@ -346,5 +347,5 @@ convert_df_nt(df_dp, '/scratch/dragon/amd/colemai/output_dp.nt', subj_url, subj_
 # In[36]:
 
 
-subprocess.call('cat *.nt > /scratch/dragon/amd/colemai/master.nt', shell=True)
+subprocess.call('cat *.nt > master.nt', shell=True)
 
