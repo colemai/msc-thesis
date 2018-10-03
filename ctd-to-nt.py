@@ -51,24 +51,23 @@ def convert_df_nt (df, output_file, subj_url, subj_col, obj_url, obj_col, pred_c
 # In[3]:
 
 
-subprocess.call('pip3 install wget', shell=True)
-import wget
-wget.download('http://ctdbase.org/reports/CTD_chem_gene_ixns.csv.gz')
-wget.download('http://ctdbase.org/reports/CTD_chemicals_diseases.csv.gz')
-wget.download('http://ctdbase.org/reports/CTD_chem_pathways_enriched.csv.gz')
-wget.download('http://ctdbase.org/reports/CTD_genes_diseases.csv.gz')
-wget.download('http://ctdbase.org/reports/CTD_genes_pathways.csv.gz')
-wget.download('http://ctdbase.org/reports/CTD_diseases_pathways.csv.gz')
-wget.download('http://ctdbase.org/reports/CTD_pheno_term_ixns.csv.gz')
+# subprocess.call('pip3 install wget', shell=True)
+# subprocess.call('wget http://ctdbase.org/reports/CTD_chem_gene_ixns.csv.gz', shell=True)
+# subprocess.call('wget http://ctdbase.org/reports/CTD_chemicals_diseases.csv.gz', shell = True)
+# subprocess.call('wget http://ctdbase.org/reports/CTD_chem_pathways_enriched.csv.gz', shell = True)
+# subprocess.call('wget http://ctdbase.org/reports/CTD_genes_diseases.csv.gz', shell = True)
+# subprocess.call('wget http://ctdbase.org/reports/CTD_genes_pathways.csv.gz', shell = True)
+# subprocess.call('wget http://ctdbase.org/reports/CTD_diseases_pathways.csv.gz', shell = True)
+# subprocess.call('wget http://ctdbase.org/reports/CTD_pheno_term_ixns.csv.gz', shell = True)
 
 
 # In[5]:
 
 
 # Move all the csvs to a subfolder and unzip them
-subprocess.call('mkdir csvs', shell=True)
-subprocess.call('mv *.gz csvs/', shell=True)
-subprocess.call('gunzip csvs/*.gz', shell=True)
+# subprocess.call('mkdir csvs', shell=True)
+# subprocess.call('mv *.gz csvs/', shell=True)
+# subprocess.call('gunzip csvs/*.gz', shell=True)
 
 
 # In[6]:
@@ -93,7 +92,7 @@ subprocess.call('gunzip csvs/*.gz', shell=True)
 df_cg = pd.read_csv('csvs/CTD_chem_gene_ixns.csv', skiprows=27)
 df_cg = df_cg.drop(0)
 df_cg = df_cg.rename(columns={'# ChemicalName': 'ChemicalName'}) # rename of a column
-
+print('Progress: 1')
 
 # In[ ]:
 
@@ -103,7 +102,7 @@ s = df_cg['InteractionActions'].str.split('|').apply(pd.Series, 1).stack()
 s.index = s.index.droplevel(-1)
 s.name = 'InteractionActions'
 df_cg = df_cg.join(s.apply(lambda x: pd.Series(x.split('|'))))
-
+print('Progress: 2')
 
 # In[ ]:
 
@@ -112,7 +111,7 @@ df_cg = df_cg.join(s.apply(lambda x: pd.Series(x.split('|'))))
 df_cg = df_cg.rename(columns={0: 'Predicate'})
 df_cg['Predicate'] = df_cg.Predicate.str.replace('^', '_')
 df_cg['Predicate'] = df_cg.Predicate.str.replace(' ', '_')
-
+print('Progress: 3')
 
 # In[ ]:
 
@@ -130,9 +129,9 @@ obj_url = 'http://identifiers.org/ctd.gene/'
 obj_col = 'GeneID'
 pred_col = 'Predicate'
 
-convert_df_nt(df_cg, 'output_cg.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
+convert_df_nt(df_cg, '/scratch/dragon/amd/colemai/output_cg.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
 
-
+print('Progress: 4')
 # ## Chem-Disease
 
 # In[14]:
@@ -158,20 +157,21 @@ df_cd['DiseaseID'] = df_cd['DiseaseID'].str.replace('MESH:', '')
 
 # In[17]:
 
-
+print('Progress: 5')
 # Create Predicate Column
 def cd_predicate(r):
     """
     Create predicate from directevidence if available
     """
-    df_cd['DirectEvidence'] = df_cd.DirectEvidence.astype(str) 
     if r['DirectEvidence'] == "nan":
         return 'associated_by_inference_via_' + str(r.InferenceGeneSymbol)
     else:
         return 'associated_directly_with'
-    
-df_cd['Predicate'] = df_cd.apply(cd_predicate, axis=1)
 
+print('starting pred')    
+df_cd['DirectEvidence'] = df_cd.DirectEvidence.astype(str) 
+df_cd['Predicate'] = df_cd.apply(cd_predicate, axis=1)
+print('ending pred')
 
 # In[18]:
 
@@ -183,22 +183,24 @@ obj_url_2 = 'http://identifiers.org/omim/' # to use when CTD gives an omim disea
 obj_col = 'DiseaseID'
 pred_col = 'Predicate'
 
-convert_df_nt(df_cd, 'output_cd.nt', subj_url, subj_col, obj_url, obj_col, pred_col, obj_url_2)
+convert_df_nt(df_cd, '/scratch/dragon/amd/colemai/output_cd.nt', subj_url, subj_col, obj_url, obj_col, pred_col, obj_url_2)
 
 
 # ## Gene Disease
 
 # In[19]:
 
-
+print('Progress: 6')
 # Read in CTD sample, skipping the intro rows
 df_gd = pd.read_csv('csvs/CTD_genes_diseases.csv', skiprows=27)
+df_gd = df_gd.drop(0)
 
 
 # In[21]:
 
 
 # Must make some quick refinements to ensure resulting URLs work
+df_gd['GeneID'] = df_gd['GeneID'].fillna(0).astype(int)
 df_gd['GeneID'] = df_gd.GeneID.astype(int) 
 df_gd['DirectEvidence'] = df_gd.DirectEvidence.astype(str) 
 df_gd['DiseaseID'] = df_gd['DiseaseID'].str.replace('MESH:', '')
@@ -217,7 +219,7 @@ df_gd['Predicate'] = df_gd.apply(gd_predicate, axis=1)
 
 
 # In[24]:
-
+print('Progress: 7')
 
 subj_url = 'http://identifiers.org/ctd.gene/' 
 subj_col = 'GeneID'
@@ -225,7 +227,7 @@ obj_url = 'http://identifiers.org/mesh/'
 obj_col = 'DiseaseID'
 pred_col = 'Predicate'
 
-convert_df_nt(df_gd, 'output_gd.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
+convert_df_nt(df_gd, '/scratch/dragon/amd/colemai/output_gd.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
 
 
 # ## Gene Pathway
@@ -237,11 +239,12 @@ convert_df_nt(df_gd, 'output_gd.nt', subj_url, subj_col, obj_url, obj_col, pred_
 df_gp = pd.read_csv('csvs/CTD_genes_pathways.csv', skiprows=27)
 df_gp = df_gp.drop(0)
 
-
+print('Progress: 8')
 # In[27]:
 
 
 # Must make some quick refinements to ensure resulting URLs work
+df_gp['GeneID'] = df_gp['GeneID'].fillna(0).astype(int)
 df_gp['GeneID'] = df_gp.GeneID.astype(int) 
 df_gp['PathwayID'] = df_gp['PathwayID'].str.replace('REACT:', '')
 
@@ -261,7 +264,7 @@ obj_url = 'http://identifiers.org/reactome/'
 obj_col = 'PathwayID'
 pred_col = 'Predicate'
 
-convert_df_nt(df_gp, 'output_gp.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
+convert_df_nt(df_gp, '/scratch/dragon/amd/colemai/output_gp.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
 
 
 # ## Disease Pathway
@@ -298,7 +301,7 @@ obj_url = 'http://identifiers.org/reactome/'
 obj_col = 'PathwayID'
 pred_col = 'Predicate'
 
-convert_df_nt(df_dp, 'output_dp.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
+convert_df_nt(df_dp, '/scratch/dragon/amd/colemai/output_dp.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
 
 
 # ## Phenotype Chemical
@@ -335,7 +338,7 @@ convert_df_nt(df_dp, 'output_dp.nt', subj_url, subj_col, obj_url, obj_col, pred_
 # obj_col = 'phenotypeid'
 # pred_col = 'Predicate'
 
-# convert_df_nt(df_pc, 'output_pc.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
+# convert_df_nt(df_pc, '/scratch/dragon/amd/colemai/output_pc.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
 
 
 # ## Merge NT files
@@ -343,5 +346,5 @@ convert_df_nt(df_dp, 'output_dp.nt', subj_url, subj_col, obj_url, obj_col, pred_
 # In[36]:
 
 
-subprocess.call('cat *.nt > master.nt', shell=True)
+subprocess.call('cat *.nt > /scratch/dragon/amd/colemai/master.nt', shell=True)
 
