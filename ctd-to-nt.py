@@ -89,7 +89,7 @@ def convert_df_nt (df, output_file, subj_url, subj_col, obj_url, obj_col, pred_c
 # def ctd_to_rdf(csv, output_file, subj_url, subj_col, obj_url, obj_col, pred_col):
 #     """
 #     """
-#     df = pd.read_csv(csv, skiprows=27, nrows = 100)
+#     df = pd.read_csv(csv, skiprows=27 )
 #     df = df.drop(0)
 #     convert_df_nt(df, output_file, subj_url, subj_col, obj_url, obj_col, pred_col)
 
@@ -107,7 +107,7 @@ subprocess.call('echo "Begin Chem-Gene" >> log.txt', shell=True)
 
 
 # Read in CTD sample, skipping the intro rows8888
-df_cg = pd.read_csv('csvs/CTD_chem_gene_ixns.csv', skiprows=27, nrows=100)
+df_cg = pd.read_csv('csvs/CTD_chem_gene_ixns.csv', skiprows=27)
 df_cg = df_cg.drop(0)
 df_cg = df_cg.rename(columns={'# ChemicalName': 'ChemicalName'}) # rename of a column
 
@@ -163,7 +163,7 @@ subprocess.call('echo "Begin Chem-Dis" >> log.txt', shell=True)
 
 
 # Read in CTD sample, skipping the intro rows
-df_cd = pd.read_csv('csvs/CTD_chemicals_diseases.csv', skiprows=27, nrows=100)
+df_cd = pd.read_csv('csvs/CTD_chemicals_diseases.csv', skiprows=27)
 df_cd = df_cd.drop(0)
 
 
@@ -223,7 +223,7 @@ subprocess.call('echo "Begin Gene-Dis" >> log.txt', shell=True)
 
 
 # Read in CTD sample, skipping the intro rows
-df_gd = pd.read_csv('csvs/CTD_genes_diseases.csv', skiprows=27, nrows=100)
+df_gd = pd.read_csv('csvs/CTD_genes_diseases.csv', skiprows=27)
 df_gd = df_gd.drop(0)
 
 
@@ -275,7 +275,7 @@ subprocess.call('echo "Begin Gene-Path" >> log.txt', shell=True)
 
 
 # Read in CTD sample, skipping the intro rows
-df_gp = pd.read_csv('csvs/CTD_genes_pathways.csv', skiprows=27, nrows = 100)
+df_gp = pd.read_csv('csvs/CTD_genes_pathways.csv', skiprows=27 )
 df_gp = df_gp.drop(0)
 
 
@@ -319,7 +319,7 @@ subprocess.call('echo "Begin Dis-Path" >> log.txt', shell=True)
 
 
 # Read in CTD sample, skipping the intro rows
-df_dp = pd.read_csv('csvs/CTD_diseases_pathways.csv', skiprows=27, nrows = 100)
+df_dp = pd.read_csv('csvs/CTD_diseases_pathways.csv', skiprows=27 )
 df_dp = df_dp.drop(0)
 
 
@@ -363,7 +363,7 @@ convert_df_nt(df_dp, 'output_dp.nt', subj_url, subj_col, obj_url, obj_col, pred_
 
 
 # Read in CTD sample, skipping the intro rows
-# df_pc = pd.read_csv('csvs/CTD_pheno_term_ixns.csv', skiprows=27, nrows = 100, nrows = 100)
+# df_pc = pd.read_csv('csvs/CTD_pheno_term_ixns.csv', skiprows=27  )
 # df_pc = df_pc.drop(0)
 # df_pc[10:20]
 
