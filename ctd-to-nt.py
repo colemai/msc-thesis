@@ -5,6 +5,10 @@
 # <b>Author</b>: Ian Coleman <br/>
 # <b>Function</b>: Takes local CTD csvs and turns each into a .nt file
 
+# <b>Notes:</b>
+# To run this for visualising and investigating the data you'll need to ensure that each pd.read_csv line takes the argument nrows=100 or some other small number <br>
+# To run it for the intended purpose of converting the DBs to RDF make sure that the nrows argument is not being passed anywhere
+
 # In[1]:
 
 
@@ -13,6 +17,13 @@ import numpy as np
 import scipy as sp
 import subprocess
 import math
+
+
+# In[4]:
+
+
+# Begin log file (progress etc so can be checked from ssh)
+subprocess.call('echo "Date: " `date` > log.txt', shell=True)
 
 
 # ## Functions
@@ -51,7 +62,7 @@ def convert_df_nt (df, output_file, subj_url, subj_col, obj_url, obj_col, pred_c
 # In[3]:
 
 
-# subprocess.call('pip3 install wget', shell=True)
+# # subprocess.call('pip3 install wget', shell=True)
 # subprocess.call('wget http://ctdbase.org/reports/CTD_chem_gene_ixns.csv.gz', shell=True)
 # subprocess.call('wget http://ctdbase.org/reports/CTD_chemicals_diseases.csv.gz', shell = True)
 # subprocess.call('wget http://ctdbase.org/reports/CTD_chem_pathways_enriched.csv.gz', shell = True)
@@ -61,16 +72,16 @@ def convert_df_nt (df, output_file, subj_url, subj_col, obj_url, obj_col, pred_c
 # subprocess.call('wget http://ctdbase.org/reports/CTD_pheno_term_ixns.csv.gz', shell = True)
 
 
-# In[5]:
+# In[4]:
 
 
-# Move all the csvs to a subfolder and unzip them
+# # Move all the csvs to a subfolder and unzip them
 # subprocess.call('mkdir csvs', shell=True)
 # subprocess.call('mv *.gz csvs/', shell=True)
 # subprocess.call('gunzip csvs/*.gz', shell=True)
 
 
-# In[6]:
+# In[5]:
 
 
 # too ambitious?? 
@@ -78,125 +89,145 @@ def convert_df_nt (df, output_file, subj_url, subj_col, obj_url, obj_col, pred_c
 # def ctd_to_rdf(csv, output_file, subj_url, subj_col, obj_url, obj_col, pred_col):
 #     """
 #     """
-#     df = pd.read_csv(csv, skiprows=27)
+#     df = pd.read_csv(csv, skiprows=27, nrows = 100)
 #     df = df.drop(0)
 #     convert_df_nt(df, output_file, subj_url, subj_col, obj_url, obj_col, pred_col)
 
 
 # ## CHEM-GENE 
 
-# In[38]:
+# In[ ]:
 
 
-# # Read in CTD sample, skipping the intro rows8888
-# df_cg = pd.read_csv('csvs/CTD_chem_gene_ixns.csv', skiprows=27)
-# df_cg = df_cg.drop(0)
-# df_cg = df_cg.rename(columns={'# ChemicalName': 'ChemicalName'}) # rename of a column
-# print('Progress: 1')
-
-# # In[ ]:
+# Log progress
+subprocess.call('echo "Begin Chem-Gene" >> log.txt', shell=True)
 
 
-# # Split the interactionActions into separate predicates RUN THIS ONLY ONCE
-# s = df_cg['InteractionActions'].str.split('|').apply(pd.Series, 1).stack()
-# s.index = s.index.droplevel(-1)
-# s.name = 'InteractionActions'
-# df_cg = df_cg.join(s.apply(lambda x: pd.Series(x.split('|'))))
-# print('Progress: 2')
-
-# # In[ ]:
+# In[6]:
 
 
-# # Make the new column prettier
-# df_cg = df_cg.rename(columns={0: 'Predicate'})
-# df_cg['Predicate'] = df_cg.Predicate.str.replace('^', '_')
-# df_cg['Predicate'] = df_cg.Predicate.str.replace(' ', '_')
-# print('Progress: 3')
-
-# # In[ ]:
+# Read in CTD sample, skipping the intro rows8888
+df_cg = pd.read_csv('csvs/CTD_chem_gene_ixns.csv', skiprows=27, nrows=100)
+df_cg = df_cg.drop(0)
+df_cg = df_cg.rename(columns={'# ChemicalName': 'ChemicalName'}) # rename of a column
 
 
-# # Need to change float to int for the url to work
-# df_cg['GeneID'] = df_cg.GeneID.astype(int)
+# In[7]:
 
 
-# # In[ ]:
+# Split the interactionActions into separate predicates RUN THIS ONLY ONCE
+s = df_cg['InteractionActions'].str.split('|').apply(pd.Series, 1).stack()
+s.index = s.index.droplevel(-1)
+s.name = 'InteractionActions'
+df_cg = df_cg.join(s.apply(lambda x: pd.Series(x.split('|'))))
 
 
-# subj_url = 'http://identifiers.org/ctd.chemical/' 
-# subj_col = 'ChemicalID'
-# obj_url = 'http://identifiers.org/ctd.gene/' 
-# obj_col = 'GeneID'
-# pred_col = 'Predicate'
-
-# convert_df_nt(df_cg, 'output_cg.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
-
-# print('Progress: 4')
-# # ## Chem-Disease
-
-# # In[14]:
+# In[8]:
 
 
-# # Read in CTD sample, skipping the intro rows
-# df_cd = pd.read_csv('csvs/CTD_chemicals_diseases.csv', skiprows=27)
-# df_cd = df_cd.drop(0)
+# Make the new column prettier
+df_cg = df_cg.rename(columns={0: 'Predicate'})
+df_cg['Predicate'] = df_cg.Predicate.str.replace('^', '_')
+df_cg['Predicate'] = df_cg.Predicate.str.replace(' ', '_')
 
 
-# # In[15]:
+# In[9]:
 
 
-# 'OMIM' in (df_cd.loc[65,'DiseaseID'])
+# Need to change float to int for the url to work
+df_cg['GeneID'] = df_cg.GeneID.astype(int)
 
 
-# # In[16]:
+# In[10]:
 
 
-# # Process DiseaseID so as to be usable in url
-# df_cd['DiseaseID'] = df_cd['DiseaseID'].str.replace('MESH:', '')
+subj_url = 'http://identifiers.org/ctd.chemical/' 
+subj_col = 'ChemicalID'
+obj_url = 'http://identifiers.org/ctd.gene/' 
+obj_col = 'GeneID'
+pred_col = 'Predicate'
+
+convert_df_nt(df_cg, 'output_cg.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
 
 
-# # In[17]:
+# ## Chem-Disease
 
-# print('Progress: 5')
-# # Create Predicate Column
-# def cd_predicate(r):
-#     """
-#     Create predicate from directevidence if available
-#     """
-#     if r['DirectEvidence'] == "nan":
-#         return 'associated_by_inference_via_' + str(r.InferenceGeneSymbol)
-#     else:
-#         return 'associated_directly_with'
-
-# print('starting pred')    
-# df_cd['DirectEvidence'] = df_cd.DirectEvidence.astype(str) 
-# df_cd['Predicate'] = df_cd.apply(cd_predicate, axis=1)
-# print('ending pred')
-
-# # In[18]:
+# In[ ]:
 
 
-# subj_url = 'http://identifiers.org/ctd.chemical/' 
-# subj_col = 'ChemicalID'
-# obj_url = 'http://identifiers.org/mesh/'
-# obj_url_2 = 'http://identifiers.org/omim/' # to use when CTD gives an omim disease id
-# obj_col = 'DiseaseID'
-# pred_col = 'Predicate'
-
-# convert_df_nt(df_cd, 'output_cd.nt', subj_url, subj_col, obj_url, obj_col, pred_col, obj_url_2)
+# Log progress
+subprocess.call('echo "Begin Chem-Dis" >> log.txt', shell=True)
 
 
-# # ## Gene Disease
+# In[11]:
 
-# In[19]:
 
-print('Progress: 6')
 # Read in CTD sample, skipping the intro rows
-df_gd = pd.read_csv('csvs/CTD_genes_diseases.csv', skiprows=27)
+df_cd = pd.read_csv('csvs/CTD_chemicals_diseases.csv', skiprows=27, nrows=100)
+df_cd = df_cd.drop(0)
+
+
+# In[12]:
+
+
+'OMIM' in (df_cd.loc[65,'DiseaseID'])
+
+
+# In[13]:
+
+
+# Process DiseaseID so as to be usable in url
+df_cd['DiseaseID'] = df_cd['DiseaseID'].str.replace('MESH:', '')
+
+
+# In[14]:
+
+
+# Create Predicate Column
+def cd_predicate(r):
+    """
+    Create predicate from directevidence if available
+    """
+    if r['DirectEvidence'] == "nan":
+        return 'associated_by_inference_via_' + str(r.InferenceGeneSymbol)
+    else:
+        return 'associated_directly_with'
+
+df_cd['DirectEvidence'] = df_cd.DirectEvidence.astype(str) 
+df_cd['Predicate'] = df_cd.apply(cd_predicate, axis=1)
+
+
+# In[15]:
+
+
+subj_url = 'http://identifiers.org/ctd.chemical/' 
+subj_col = 'ChemicalID'
+obj_url = 'http://identifiers.org/mesh/'
+obj_url_2 = 'http://identifiers.org/omim/' # to use when CTD gives an omim disease id
+obj_col = 'DiseaseID'
+pred_col = 'Predicate'
+
+convert_df_nt(df_cd, 'output_cd.nt', subj_url, subj_col, obj_url, obj_col, pred_col, obj_url_2)
+
+
+# ## Gene Disease
+
+# In[ ]:
+
+
+# Log progress
+subprocess.call('echo "Begin Gene-Dis" >> log.txt', shell=True)
+
+
+# In[24]:
+
+
+# Read in CTD sample, skipping the intro rows
+df_gd = pd.read_csv('csvs/CTD_genes_diseases.csv', skiprows=27, nrows=100)
 df_gd = df_gd.drop(0)
 
 
-# In[21]:
+# In[25]:
 
 
 # Must make some quick refinements to ensure resulting URLs work
@@ -218,13 +249,13 @@ def gd_predicate(r):
 df_gd['Predicate'] = df_gd.apply(gd_predicate, axis=1)
 
 
-# In[24]:
-print('Progress: 7')
+# In[6]:
+
 
 subj_url = 'http://identifiers.org/ctd.gene/' 
 subj_col = 'GeneID'
-obj_url = 'http://identifiers.org/mesh/'
-obj_url_2 = 'http://identifiers.org/omim/' 
+obj_url = 'http://identifiers.org/mesh/' 
+obj_url_2 = 'http://identifiers.org/omim/' # to use when CTD gives an omim disease id
 obj_col = 'DiseaseID'
 pred_col = 'Predicate'
 
@@ -233,15 +264,22 @@ convert_df_nt(df_gd, 'output_gd.nt', subj_url, subj_col, obj_url, obj_col, pred_
 
 # ## Gene Pathway
 
-# In[25]:
+# In[ ]:
+
+
+# Log progress
+subprocess.call('echo "Begin Gene-Path" >> log.txt', shell=True)
+
+
+# In[28]:
 
 
 # Read in CTD sample, skipping the intro rows
-df_gp = pd.read_csv('csvs/CTD_genes_pathways.csv', skiprows=27)
+df_gp = pd.read_csv('csvs/CTD_genes_pathways.csv', skiprows=27, nrows = 100)
 df_gp = df_gp.drop(0)
 
-print('Progress: 8')
-# In[27]:
+
+# In[29]:
 
 
 # Must make some quick refinements to ensure resulting URLs work
@@ -256,7 +294,7 @@ def gp_predicate(r):
 df_gp['Predicate'] = df_gp.apply(gp_predicate, axis=1)
 
 
-# In[28]:
+# In[30]:
 
 
 subj_url = 'http://identifiers.org/ctd.gene/' 
@@ -270,15 +308,22 @@ convert_df_nt(df_gp, 'output_gp.nt', subj_url, subj_col, obj_url, obj_col, pred_
 
 # ## Disease Pathway
 
-# In[29]:
+# In[ ]:
+
+
+# Log progress
+subprocess.call('echo "Begin Dis-Path" >> log.txt', shell=True)
+
+
+# In[32]:
 
 
 # Read in CTD sample, skipping the intro rows
-df_dp = pd.read_csv('csvs/CTD_diseases_pathways.csv', skiprows=27)
+df_dp = pd.read_csv('csvs/CTD_diseases_pathways.csv', skiprows=27, nrows = 100)
 df_dp = df_dp.drop(0)
 
 
-# In[31]:
+# In[33]:
 
 
 # Must make some quick refinements to ensure resulting URLs work
@@ -293,7 +338,7 @@ def dp_predicate(r):
 df_dp['Predicate'] = df_dp.apply(dp_predicate, axis=1)
 
 
-# In[32]:
+# In[34]:
 
 
 subj_url = 'http://identifiers.org/mesh/' 
@@ -305,14 +350,20 @@ pred_col = 'Predicate'
 convert_df_nt(df_dp, 'output_dp.nt', subj_url, subj_col, obj_url, obj_col, pred_col)
 
 
+# In[36]:
+
+
+# df_dp
+
+
 # ## Phenotype Chemical
 # I'm going to comment this section out as this is the Y data and shouldn't be in KG ( I think )
 
-# In[33]:
+# In[5]:
 
 
 # Read in CTD sample, skipping the intro rows
-# df_pc = pd.read_csv('csvs/CTD_pheno_term_ixns.csv', skiprows=27, nrows = 100)
+# df_pc = pd.read_csv('csvs/CTD_pheno_term_ixns.csv', skiprows=27, nrows = 100, nrows = 100)
 # df_pc = df_pc.drop(0)
 # df_pc[10:20]
 
@@ -344,8 +395,37 @@ convert_df_nt(df_dp, 'output_dp.nt', subj_url, subj_col, obj_url, obj_col, pred_
 
 # ## Merge NT files
 
+# In[ ]:
+
+
+# Log progress
+subprocess.call('echo "Begin Merging" >> log.txt', shell=True)
+
+
 # In[36]:
 
 
 subprocess.call('cat *.nt > master.nt', shell=True)
+
+
+# In[ ]:
+
+
+# Log progress
+subprocess.call('echo "Finished Merging" >> log.txt', shell=True)
+
+
+# Note that Jena doesn't accept a percentage sign unless it's followed by two hexadecimals, so you can run the following to replace the % sign with the word percentage
+
+# In[ ]:
+
+
+# subproces.call("sed -i '/%/ s//percent/g' master.nt", shell=True)
+
+
+# In[ ]:
+
+
+# # You'll need to install Apache Jena for this
+# subprocess.call('riot --output=RDFXML master.nt > master.rdf', shell=True)
 
