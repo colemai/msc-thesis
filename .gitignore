@@ -1,4 +1,4 @@
-
+*.gaf
 results/
 ctd-to-nt/output*
 output*
